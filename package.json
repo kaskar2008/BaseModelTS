@@ -7,7 +7,7 @@
     "compile": "tsc src/index --outDir compiled --target ES6",
     "example": "rollup example/app.js --output.format iife --output.file example/bundle.js",
     "roll": "rollup compiled/index.js --output.format iife --output.file rolled/index.js --name BaseModel",
-    "full": "npm run compile && npm run example"
+    "full": "npm run compile && npm run example && npm run roll"
   },
   "repository": {
     "type": "git",
