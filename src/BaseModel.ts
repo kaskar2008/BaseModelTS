@@ -1,0 +1,414 @@
+import { fromDot, getQueryString } from './misc'
+import Container from './Container'
+import {
+  Processor,
+  Modifier,
+  MethodSet,
+  ContainerSet
+} from './interfaces'
+
+const DEFAULTS = {
+  IS_JSON_RESPONSE: true,
+  QUERY_METHOD: 'GET',
+  CONTAINER_PROXY_PREFIX: '$'
+}
+
+export class BaseModel {
+  [key: string]: any
+
+  private processors: MethodSet = {}
+  private modifiers: MethodSet = {}
+
+  public parent: any
+  public containers: ContainerSet = {}
+  public interceptor: (resp: any) => any
+
+  constructor (parent: any = null) {
+    this.parent = parent
+    this.addFieldProcessorsBulk({
+      'int': (value: any) => !value ? 0 : (parseInt(value) ? +parseInt(value) : 0),
+      'string': (value: any) => (typeof value) == 'string' ? value : (!value ? '' : ''+value),
+      'array': (value: any) => Array.isArray(value) ? value : [],
+      'bool': (value: any) => value ? true : false,
+      // Processors for testing:
+      'usd': (value: any) => value.toString() != 'NaN' ? (value.toString().indexOf('$') < 0 ? value+'$' : value) : value,
+      'kzt': (value: any) => value.toString() != 'NaN' ? (value.toString().indexOf('₸') < 0 ? value+'₸' : value) : value
+    })
+  }
+
+  /**
+   * Sets a Proxy alias for the container
+   * to the root of this class
+   * @param container_name Container name
+   */
+  public setProxy (container_name: string): void {
+    if (this.getContainer(container_name)) {
+      let original: any = this.containers[container_name].data
+      let proxy_name: string = `${DEFAULTS.CONTAINER_PROXY_PREFIX}${container_name}`
+      this[proxy_name] = new Proxy(original, {})
+    } else {
+      console.error(`
+        BaseAjax::setProxy()
+        Container ${container_name} not found
+      `)
+    }
+  }
+
+  /**
+   * Creates a method to proceed a processors chain
+   * @param names Processors chain
+   */
+  private createProcessorCallie (names: string): (data: any) => any {
+    let names_ar: string[] = names.split('.')
+    return (data: any) => {
+      let is_stop: boolean = false
+      let acc: any = data
+      for (let name of names_ar) {
+        // check if there is a modifier
+        if (name.indexOf(`:`) >= 0) {
+          let full_mod: string[] = name.split(':')
+          let mod_name: string = full_mod[0]
+          let mod_params: any = JSON.parse(full_mod[1])
+          if (this.modifiers[mod_name]) {
+            let mod_result: any = this.modifiers[mod_name](acc, mod_params)
+            acc = mod_result.value || acc
+            is_stop = mod_result.break || is_stop
+          }
+          if (is_stop) {
+            break
+          }
+        } else {
+          acc = this.proceedProcessor(name, acc)
+        }
+      }
+      return acc
+    }
+  }
+
+  /**
+   * Gets a container
+   * @param name Container name
+   */
+  protected getContainer (name: string): Container {
+    return this.containers[name]
+  }
+
+  /**
+   * Proceeds the processor
+   * @param name Processor name
+   * @param data Data to proceed
+   */
+  private proceedProcessor (name: string, data: any): any {
+    if (this.processors[name])
+      return this.processors[name](data)
+    else
+      return undefined
+  }
+
+  /**
+   * Adds a new container to the model
+   * @param name Container name
+   * @param fields Container fields
+   * @param source Container data source
+   */
+  public addContainer (name: string, fields: any, source: any = null): BaseModel {
+    let new_container = new Container(this, name, fields, source)
+    this.containers[name] = new_container
+    this.setProxy(name)
+    return this
+  }
+
+  /**
+   * Adds new containers to the model
+   * @param containers Array of containers
+   */
+  public addContainers (containers: ({ name: string, fields: any, source?: any })[]): BaseModel {
+    containers.forEach((container: any) => {
+      this.addContainer(container.name, container.fields, container.source)
+    })
+    return this
+  }
+
+  /**
+   * Gets a real processor name
+   * (ex. from '@container_name.some_field')
+   * @param name Processor name
+   */
+  public getProcessor (name: string): string {
+    if (~name.indexOf('@')) {
+      let splitted_keys: string[] = name.replace('@','').split('.')
+      let container_name: string = splitted_keys[0]
+      let container: any = this.getContainer(container_name)
+      if (container) {
+        let property_name: string = splitted_keys.slice(-1).join('')
+        let processor_name: string = container.fields[property_name]
+        if (~processor_name.indexOf('@')) {
+          return this.getProcessor(processor_name)
+        } else {
+          return processor_name
+        }
+      }
+    } else {
+      return name
+    }
+  }
+
+  /**
+   * Adds a new modifier
+   * @param params Name and a callback for a new modifier
+   */
+  public addModifier (params: Modifier): BaseModel {
+    let name: string = params.name || null
+    let callie: (...args) => any = params.proc || null
+    if (!name || !callie) {
+      console.error(`
+        BaseAjax::addModifier()
+        You should specify both name and callback
+      `)
+      return this
+    }
+    this.modifiers[name] = callie
+    return this
+  }
+
+  /**
+   * Adds a new processor
+   * @param params Name and a callback for a new processor
+   */
+  public addFieldProcessor (params: Processor): BaseModel {
+    let name: string = params.name
+    let callie: (...args) => any = params.proc
+    if (!name || !callie) {
+      console.error(`
+        BaseModel::addFieldProcessor()
+        You should specify both name and callback
+      `)
+      return this
+    }
+    this.processors[name] = callie
+    return this
+  }
+
+  /**
+   * Adds new processors
+   * @param processors Names and a callbacks for new processors
+   */
+  public addFieldProcessorsBulk (processors: MethodSet ): BaseModel {
+    this.processors = { ...this.processors, ...processors }
+    return this
+  }
+
+  /**
+   * Adds new modifiers
+   * @param modifiers Names and a callbacks for new modifiers
+   */
+  public addModifiersBulk (modifiers: MethodSet): BaseModel {
+    this.modifiers = { ...this.modifiers, ...modifiers }
+    return this
+  }
+
+  /**
+   * Gets a field value from a container
+   * @param container_name Container name
+   * @param field Field name
+   */
+  private getFieldFromContainer (container_name: string, field: string) {
+    let container: Container = this.getContainer(container_name)
+    let context_group = container ? container.data : null
+    if (!context_group) {
+      console.error(`BaseModel::getFieldFromContainer() Container ${container_name} not found`)
+    }
+    return fromDot(context_group, field)
+  }
+
+  /**
+   * Generates a method for a query
+   * @param params Custom params and Fetch params
+   */
+  public generateQuery (params: any): () => void {
+    let uri: string = params.uri
+    let method: string = (params.method || DEFAULTS.QUERY_METHOD).toUpperCase()
+    let container_name: string = params.container || null
+    let container: any
+
+    if (container_name) {
+      container = this.getContainer(container_name)
+    }
+
+    let data: any = container ? this.getFields(container_name) : (params.data || null)
+    let mode: any = params.mode
+    let headers: any = params.headers || {}
+    let credentials: any = params.credentials
+    let check: string = params.check || 'status'
+    let is_json: boolean = (params.json === true || params.json === false) ? params.json : DEFAULTS.IS_JSON_RESPONSE
+
+    if (method == 'GET' && data) {
+      uri = uri + (!~uri.indexOf('?')?'?':'&') + getQueryString(data)
+    } else if (method != 'GET') {
+      data = JSON.stringify(data)
+    }
+
+    let result: () => void = () => {
+      return new Promise((resolve, reject) => {
+        fetch(uri, {
+          headers: new Headers(Object.assign({},headers)),
+          credentials,
+          method,
+          mode,
+          body: data
+        }).then((response) => {
+          if (this.interceptor) {
+            let is_continue: boolean = this.interceptor(response)
+            if (!is_continue) {
+              reject()
+            }
+          }
+          if (!response.ok) {
+            reject()
+          }
+          if (is_json) {
+            response.json().then((json: string) => {
+              resolve(json)
+            }).catch(() => {
+              let err: any = new Error('Json parse error')
+              err.type = 'json'
+              reject(err)
+            })
+          } else {
+            response.text().then((text: string) => {
+              resolve(text)
+            }).catch(() => {
+              let err: any = new Error('Text retrieve error')
+              err.type = 'text'
+              reject(err)
+            })
+          }
+        }).catch((error: any) => {
+          reject(error)
+        })
+      })
+    }
+    return result
+  }
+
+  /**
+   * Parses an expression
+   * Note:  Due to some restrictions
+   *        you should only compare
+   *        fields with the boolean values
+   *        ex.: if(&.someGetter == false)
+   * @param expression Conditional expression
+   */
+  private parseCondition (expression: string): boolean {
+    let items: string[] = expression.split(' ')
+    for (let i in items) {
+      let splitted_keys: string[] = items[i].split('.')
+      if (splitted_keys.length) {
+        let model_path: string = splitted_keys.slice(1, -1).join('.')
+        let property_name: string = splitted_keys.slice(-1).join('')
+        // from parent
+        if (splitted_keys[0] == '^') {
+          items[i] = fromDot(this.parent, model_path)[property_name]
+        }
+        // from self class
+        if (splitted_keys[0] == '&') {
+          items[i] = fromDot(this, model_path)[property_name]
+        }
+        // from container
+        if (splitted_keys[0] == '@') {
+          let container_name = splitted_keys[0].replace('@','')
+          items[i] = this.getFieldFromContainer(container_name, model_path)[property_name]
+        }
+      }
+    }
+    expression = items.join(' ')
+    return Function.apply(null, [].concat('return ' + expression))()
+  }
+
+  /**
+   * Gets proceeded fields from a container
+   * @param container_name Container name
+   */
+  private getFields (container_name: string): any {
+    let container: Container = this.getContainer(container_name)
+
+    if (!Object.keys(container.fields).length) {
+      console.error(`
+        BaseModel::getFields()
+        You have to specify field names
+      `)
+      return {}
+    }
+    if (!container.fields) {
+      return container.data || {}
+    }
+    let result: any = {}
+    Object.keys(container.fields)
+      .map((el: string) => {
+        let model: any = container.data
+        let field_name: string = el
+        let property_name: string = el
+        let value: any = null
+        let external_value: any = null
+        let is_external: boolean = false
+
+        // has condition:
+        let condition: string[] = el.match(/if\((.+)\)/i)
+        let condition_result: boolean = true
+        if (condition && condition.length > 1) {
+          condition_result = this.parseCondition(condition[1])
+        }
+
+        // if add this field
+        if (condition_result) {
+          // is external:
+          if (~el.indexOf('.')) {
+            let keys: string = el.split(' ')[0]
+            let splitted_keys: string[] = keys.split('.')
+            property_name = splitted_keys.slice(-1).join('')
+            // now we see - it's an external field
+            if (splitted_keys[0] == '^' || splitted_keys[0] == '&' || splitted_keys[0].indexOf('@') === 0) {
+              is_external = true
+              let model_path: string = splitted_keys.slice(1, -1).join('.')
+              // from container
+              if (splitted_keys[0].indexOf('@') === 0) {
+                let tmp_container_name: string = splitted_keys[0].replace('@','')
+                model = this.getFieldFromContainer(tmp_container_name, model_path)
+              } else
+              // from parent
+              if (splitted_keys[0] == '^' && this.parent) {
+                model = fromDot(this.parent, model_path)
+              } else
+              // from self class
+              if (splitted_keys[0] == '&') {
+                model = fromDot(this, model_path)
+              }
+            }
+            if (!model) {
+              console.error(`BaseModel::getFields() Field ${el} not found`)
+            }
+            external_value = model[property_name]
+            field_name = property_name
+          }
+
+          let el_without_cond: string = el.replace(/if\((.+)\)/ig, '').trim()
+
+          // is alias:
+          if (~el_without_cond.indexOf(' as ')) {
+            let keys: string[] = el_without_cond.split(' as ')
+            if (!is_external) {
+              property_name = keys[0]
+            }
+            field_name = keys[1]
+          }
+
+          value = is_external ? external_value : model[property_name]
+          let proc_names: string = this.getProcessor(container.fields[el])
+          let processors: (data: any) => any = this.createProcessorCallie(proc_names)
+          result[field_name] = processors ? processors(value) : value
+        }
+      })
+    return result
+  }
+
+}

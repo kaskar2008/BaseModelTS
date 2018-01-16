@@ -1,0 +1,26 @@
+{
+  "name": "basemodelts",
+  "version": "1.0.0",
+  "description": "Old BaseModel but in ts and improved",
+  "main": "compiled/index.js",
+  "scripts": {
+    "compile": "tsc src/index --outDir compiled --target ES6",
+    "example": "rollup example/app.js --output.format iife --output.file example/bundle.js",
+    "roll": "rollup compiled/index.js --output.format iife --output.file rolled/index.js --name BaseModel",
+    "full": "npm run compile && npm run example"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kaskar2008/BaseModelTS.git"
+  },
+  "author": "kaskar2008",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kaskar2008/BaseModelTS/issues"
+  },
+  "homepage": "https://github.com/kaskar2008/BaseModelTS#readme",
+  "devDependencies": {
+    "rollup": "^0.53.4",
+    "typescript": "^2.6.2"
+  }
+}
