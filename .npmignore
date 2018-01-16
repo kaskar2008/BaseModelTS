@@ -1,4 +1,9 @@
-node_modules
 .gitignore
 .editorconfig
-.DS_Store
+
+# Mac.
+.DS_STORE
+
+# Node.
+node_modules
+npm-debug.log
