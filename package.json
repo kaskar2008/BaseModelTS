@@ -1,8 +1,8 @@
 {
   "name": "basemodelts",
-  "version": "1.0.2",
+  "version": "1.0.0",
   "description": "Old BaseModel but in ts and improved",
-  "main": "compiled/index.js",
+  "main": "rolled/index.js",
   "scripts": {
     "compile": "tsc src/index --outDir compiled --target ES6",
     "example": "rollup example/app.js --output.format iife --output.file example/bundle.js",
