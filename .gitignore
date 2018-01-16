@@ -2,3 +2,4 @@ node_modules
 compiled
 rolled
 example
+.DS_Store
