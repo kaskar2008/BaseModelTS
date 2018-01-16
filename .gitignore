@@ -1,5 +1,9 @@
+# Mac.
+.DS_STORE
+
+# Node.
 node_modules
+npm-debug.log
+
 compiled
 rolled
-example
-.DS_Store
