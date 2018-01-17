@@ -6,7 +6,8 @@ import {
   MethodSet,
   ContainerSet,
   ContainerBase,
-  QueryMethod
+  QueryMethod,
+  ContainerBases
 } from './interfaces'
 import { DEFAULTS } from './defaults';
 
@@ -106,12 +107,35 @@ export class BaseModel<Parent> {
    * Adds new containers to the model
    * @param containers Array of containers
    */
-  public addContainers (containers: ContainerBase): BaseModel<Parent> {
+  public addContainer: {
+    (name: string, fields: { [key: string]: string }, source?): BaseModel<Parent>;
+    (container: ContainerBase): BaseModel<Parent>;
+  } = function() {
+    if (arguments.length >= 2) {
+      var name = arguments[0]
+      var fields = arguments[1]
+      var source = arguments[2]
+    } else {
+      const base: ContainerBase = arguments[0];
+      name = base.name
+      fields = base.fields
+      source = base.source
+    }
+    let new_container = new Container(this, name, fields, source)
+    this.containers[name] = new_container
+    this.setProxy(name)
+    return this;
+  }
+
+  public addContainers:{
+    (containers: ContainerBases): BaseModel<Parent>
+    (containers: ContainerBase[]): BaseModel<Parent>
+  } = containers => {
+    if (Array.isArray(containers))
+      containers.forEach(this.addContainer);
     for (let name in containers) {
       const { fields, source } = containers[name]
-      let new_container = new Container(this, name, fields, source)
-      this.containers[name] = new_container
-      this.setProxy(name)
+      this.addContainer(name, fields, source)
     }
     return this
   }

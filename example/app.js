@@ -10,7 +10,7 @@ class PostModel extends BaseModel {
           'name as full_name': 'string',
           'pass': 'string'
         },
-        service: root.form_data
+        source: root.form_data
       },
       'post_data': {
         fields: {

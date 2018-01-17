@@ -18,11 +18,17 @@ export interface ContainerSet<T> {
   [key: string]: Container<T>
 }
 
-export interface ContainerBase {
+export interface ContainerBases {
   [name: string]: {
-    fields: any,
+    fields: { [key: string]: string }
     source?: any
   }
+}
+
+export interface ContainerBase {
+  name: string
+  fields: { [key: string]: string }
+  source?: any
 }
 
 export interface RequestParameters {
