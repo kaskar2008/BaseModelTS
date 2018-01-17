@@ -14,6 +14,26 @@ export interface MethodSet {
   [key: string]: (...args) => any
 }
 
-export interface ContainerSet {
-  [key: string]: Container
+export interface ContainerSet<T> {
+  [key: string]: Container<T>
 }
+
+export interface ContainerBase {
+  [name: string]: {
+    fields: any,
+    source?: any
+  }
+}
+
+export interface RequestParameters {
+  uri: string
+  method: QueryMethod
+  container: string
+  mode: any
+  headers: { [key: string]: string }
+  credentials: any
+  check: string
+  json: boolean
+}
+
+export type QueryMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'OPTIONS' | 'PATCH' | 'COPY' | 'HEAD' | 'VIEW' //...may as well continue...

@@ -1,12 +1,12 @@
 import { BaseModel } from './BaseModel'
 
-export default class Container {
-  private model: BaseModel
+export default class Container<T> {
+  private model: BaseModel<T>
   public data: any = {}
   public name: string
   public fields: any = {}
 
-  constructor (model: BaseModel, name: string, fields: any, source: any = null) {
+  constructor (model: BaseModel<T>, name: string, fields: any, source: any = null) {
     this.model = model
     this.name = name
     this.fields = fields

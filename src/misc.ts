@@ -13,7 +13,7 @@ export function getQueryString (params: any): string {
   .join('&')
 }
 
-export function fromDot (obj: any, path: string): any {
+export function fromDot<T> (obj: T, path: string): T {
   if (!path) return obj
-  return path.split('.').reduce((o: any, i: any) => typeof o === 'object'? o[i] : o, obj)
+  return path.split('.').reduce((o, i) => typeof o === 'object'? o[i] : o, obj)
 }
