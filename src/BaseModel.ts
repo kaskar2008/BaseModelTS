@@ -4,26 +4,23 @@ import {
   Processor,
   Modifier,
   MethodSet,
-  ContainerSet
+  ContainerSet,
+  ContainerBase,
+  QueryMethod
 } from './interfaces'
+import { DEFAULTS } from './defaults';
 
-const DEFAULTS = {
-  IS_JSON_RESPONSE: true,
-  QUERY_METHOD: 'GET',
-  CONTAINER_PROXY_PREFIX: '$'
-}
-
-export class BaseModel {
+export class BaseModel<Parent> {
   [key: string]: any
 
   private processors: MethodSet = {}
   private modifiers: MethodSet = {}
 
-  public parent: any
-  public containers: ContainerSet = {}
+  public parent: Parent
+  public containers: ContainerSet<Parent> = {}
   public interceptor: (resp: any) => any
 
-  constructor (parent: any = null) {
+  constructor (parent: Parent = null) {
     this.parent = parent
     this.addFieldProcessorsBulk({
       'int': (value: any) => !value ? 0 : (parseInt(value) ? +parseInt(value) : 0),
@@ -89,7 +86,7 @@ export class BaseModel {
    * Gets a container
    * @param name Container name
    */
-  protected getContainer (name: string): Container {
+  protected getContainer (name: string): Container<Parent> {
     return this.containers[name]
   }
 
@@ -111,7 +108,7 @@ export class BaseModel {
    * @param fields Container fields
    * @param source Container data source
    */
-  public addContainer (name: string, fields: any, source: any = null): BaseModel {
+  public addContainer ({ name, fields, source }: ContainerBase): BaseModel<Parent> {
     let new_container = new Container(this, name, fields, source)
     this.containers[name] = new_container
     this.setProxy(name)
@@ -122,9 +119,9 @@ export class BaseModel {
    * Adds new containers to the model
    * @param containers Array of containers
    */
-  public addContainers (containers: ({ name: string, fields: any, source?: any })[]): BaseModel {
-    containers.forEach((container: any) => {
-      this.addContainer(container.name, container.fields, container.source)
+  public addContainers (containers: ContainerBase[]): BaseModel<Parent> {
+    containers.forEach((container: ContainerBase) => {
+      this.addContainer(container)
     })
     return this
   }
@@ -157,7 +154,7 @@ export class BaseModel {
    * Adds a new modifier
    * @param params Name and a callback for a new modifier
    */
-  public addModifier (params: Modifier): BaseModel {
+  public addModifier (params: Modifier): BaseModel<Parent> {
     let name: string = params.name || null
     let callie: (...args) => any = params.proc || null
     if (!name || !callie) {
@@ -175,7 +172,7 @@ export class BaseModel {
    * Adds a new processor
    * @param params Name and a callback for a new processor
    */
-  public addFieldProcessor (params: Processor): BaseModel {
+  public addFieldProcessor (params: Processor): BaseModel<Parent> {
     let name: string = params.name
     let callie: (...args) => any = params.proc
     if (!name || !callie) {
@@ -193,7 +190,7 @@ export class BaseModel {
    * Adds new processors
    * @param processors Names and a callbacks for new processors
    */
-  public addFieldProcessorsBulk (processors: MethodSet ): BaseModel {
+  public addFieldProcessorsBulk (processors: MethodSet): BaseModel<Parent> {
     this.processors = { ...this.processors, ...processors }
     return this
   }
@@ -202,7 +199,7 @@ export class BaseModel {
    * Adds new modifiers
    * @param modifiers Names and a callbacks for new modifiers
    */
-  public addModifiersBulk (modifiers: MethodSet): BaseModel {
+  public addModifiersBulk (modifiers: MethodSet): BaseModel<Parent> {
     this.modifiers = { ...this.modifiers, ...modifiers }
     return this
   }
@@ -213,7 +210,7 @@ export class BaseModel {
    * @param field Field name
    */
   private getFieldFromContainer (container_name: string, field: string) {
-    let container: Container = this.getContainer(container_name)
+    let container: Container<Parent> = this.getContainer(container_name)
     let context_group = container ? container.data : null
     if (!context_group) {
       console.error(`BaseModel::getFieldFromContainer() Container ${container_name} not found`)
@@ -227,7 +224,7 @@ export class BaseModel {
    */
   public generateQuery (params: any): () => void {
     let uri: string = params.uri
-    let method: string = (params.method || DEFAULTS.QUERY_METHOD).toUpperCase()
+    let method: QueryMethod = (params.method || DEFAULTS.QUERY_METHOD).toUpperCase()
     let container_name: string = params.container || null
     let container: any
 
@@ -330,7 +327,7 @@ export class BaseModel {
    * @param container_name Container name
    */
   private getFields (container_name: string): any {
-    let container: Container = this.getContainer(container_name)
+    let container: Container<Parent> = this.getContainer(container_name)
 
     if (!Object.keys(container.fields).length) {
       console.error(`
