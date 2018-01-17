@@ -4,18 +4,21 @@ class PostModel extends BaseModel {
   constructor (root) {
     super(root)
     console.log('ROOT.form_data', root.form_data)
-    this
-      .addContainer(
-        'user', {
+    this.addContainers({
+      'user': {
+        fields: {
           'name as full_name': 'string',
           'pass': 'string'
-        }, root.form_data)
-      .addContainer(
-        'post_data', {
+        },
+        service: root.form_data
+      },
+      'post_data': {
+        fields: {
           'text as description': 'allow:[null].string.strip:15',
           'is_mine if(&.isMine == true)': 'bool'
         }
-      )
+      }
+    });
     this.addModifiersBulk({
       'strip': (value, param) => {
         return { value: value.substr(0, param) }

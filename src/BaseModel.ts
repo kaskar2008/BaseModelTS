@@ -103,26 +103,16 @@ export class BaseModel<Parent> {
   }
 
   /**
-   * Adds a new container to the model
-   * @param name Container name
-   * @param fields Container fields
-   * @param source Container data source
-   */
-  public addContainer ({ name, fields, source }: ContainerBase): BaseModel<Parent> {
-    let new_container = new Container(this, name, fields, source)
-    this.containers[name] = new_container
-    this.setProxy(name)
-    return this
-  }
-
-  /**
    * Adds new containers to the model
    * @param containers Array of containers
    */
-  public addContainers (containers: ContainerBase[]): BaseModel<Parent> {
-    containers.forEach((container: ContainerBase) => {
-      this.addContainer(container)
-    })
+  public addContainers (containers: ContainerBase): BaseModel<Parent> {
+    for (let name in containers) {
+      const { fields, source } = containers[name]
+      let new_container = new Container(this, name, fields, source)
+      this.containers[name] = new_container
+      this.setProxy(name)
+    }
     return this
   }
 

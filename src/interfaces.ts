@@ -19,9 +19,10 @@ export interface ContainerSet<T> {
 }
 
 export interface ContainerBase {
-  name: string,
-  fields: any,
-  source?: any
+  [name: string]: {
+    fields: any,
+    source?: any
+  }
 }
 
 export interface RequestParameters {
