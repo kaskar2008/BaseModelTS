@@ -1,6 +1,6 @@
 {
   "name": "basemodelts",
-  "version": "1.3.5",
+  "version": "1.4.0",
   "description": "Old BaseModel but in ts and improved",
   "main": "rolled/index.js",
   "module": "compiled/index.js",
