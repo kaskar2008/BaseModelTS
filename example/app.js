@@ -1,4 +1,4 @@
-import { BaseModel } from '../compiled/BaseModel'
+import BaseModel from '../es6'
 
 class PostModel extends BaseModel {
   constructor (root) {
