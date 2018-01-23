@@ -1,5 +1,5 @@
 import { fromDot, getQueryString } from './misc'
-import Container from './Container'
+import { Container } from './Container'
 import {
   Processor,
   Modifier,
@@ -11,7 +11,7 @@ import {
 } from './interfaces'
 import { DEFAULTS } from './defaults';
 
-export default class BaseModel<Parent> {
+export class BaseModel<Parent> {
   [key: string]: any
 
   private processors: MethodSet = {}
