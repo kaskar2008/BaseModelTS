@@ -4,7 +4,6 @@
   "description": "Old BaseModel but in ts and improved",
   "main": "es6/index.js",
   "scripts": {
-    "example": "rollup example/app.js --output.format iife --output.file example/bundle.js",
     "full": "npm run example && npm run roll",
     "postversion": "npm run full",
     "patch": "npm version patch && npm publish",
