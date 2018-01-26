@@ -321,13 +321,24 @@ export class BaseModel<Parent> {
 
     let result: () => void = () => {
       return new Promise((resolve, reject) => {
-        fetch(uri, {
+        let fetch_params: any = {
           headers: new Headers(Object.assign({},headers)),
           credentials,
           method,
           mode,
           body: data
-        }).then((response) => {
+        }
+
+        let before_fetch_result: any = {
+          uri,
+          fetch_params
+        }
+
+        if (!!(this.beforeFetch && this.beforeFetch.constructor && this.beforeFetch.call && this.beforeFetch.apply)) {
+          before_fetch_result = this.beforeFetch(uri, fetch_params)
+        }
+
+        fetch(before_fetch_result.uri, before_fetch_result.fetch_params).then((response) => {
           if (this.interceptor) {
             let is_continue: boolean = this.interceptor(response)
             if (!is_continue) {
