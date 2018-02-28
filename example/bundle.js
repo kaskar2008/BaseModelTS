@@ -432,9 +432,10 @@ class BaseModel$1 {
         let result = {};
         Object.keys(container.fields)
             .map((el) => {
+            let is_required = !~el.indexOf('?');
             let model = container.data;
-            let field_name = el;
-            let property_name = el;
+            let field_name = el.replace(/\?/g, '');
+            let property_name = field_name;
             let value = null;
             let external_value = null;
             let is_external = false;
@@ -487,9 +488,12 @@ class BaseModel$1 {
                     field_name = keys[1];
                 }
                 value = is_external ? external_value : model[property_name];
-                let proc_names = this.getProcessor(container.fields[el]);
-                let processors = this.createProcessorCallie(proc_names);
-                result[field_name] = processors ? processors(value) : value;
+                if (is_required || (!is_required && value)) {
+                    console.log(el);
+                    let proc_names = this.getProcessor(container.fields[el]);
+                    let processors = this.createProcessorCallie(proc_names);
+                    result[field_name] = processors ? processors(value) : value;
+                }
             }
         });
         return result;
@@ -507,7 +511,7 @@ class PostModel extends BaseModel$1 {
     })
 
     .describeContainer('granded', {
-      'token': 'string.default:"qweqw23342d3x"'
+      '???token????': 'string'
     })
 
     .addContainer('user extends flow', {

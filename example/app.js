@@ -11,7 +11,7 @@ class PostModel extends BaseModel {
     })
 
     .describeContainer('granded', {
-      'token': 'string.default:"qweqw23342d3x"'
+      '???token????': 'string'
     })
 
     .addContainer('user extends flow', {

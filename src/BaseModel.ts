@@ -427,9 +427,10 @@ export class BaseModel<Parent> {
     let result: any = {}
     Object.keys(container.fields)
       .map((el: string) => {
+        let is_required: boolean = !~el.indexOf('?')
         let model: any = container.data
-        let field_name: string = el
-        let property_name: string = el
+        let field_name: string = el.replace(/\?/g, '')
+        let property_name: string = field_name
         let value: any = null
         let external_value: any = null
         let is_external: boolean = false
@@ -485,9 +486,11 @@ export class BaseModel<Parent> {
           }
 
           value = is_external ? external_value : model[property_name]
-          let proc_names: string = this.getProcessor(container.fields[el])
-          let processors: (data: any) => any = this.createProcessorCallie(proc_names)
-          result[field_name] = processors ? processors(value) : value
+          if (is_required || (!is_required && value)) {
+            let proc_names: string = this.getProcessor(container.fields[el])
+            let processors: (data: any) => any = this.createProcessorCallie(proc_names)
+            result[field_name] = processors ? processors(value) : value
+          }
         }
       })
     return result
