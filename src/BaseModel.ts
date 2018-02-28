@@ -322,7 +322,7 @@ export class BaseModel<Parent> {
     let result: () => void = () => {
       return new Promise((resolve, reject) => {
         let fetch_params: any = {
-          headers: new Headers(Object.assign({},headers)),
+          headers: { ...headers },
           credentials,
           method,
           mode,

@@ -332,7 +332,7 @@ class BaseModel$1 {
         let result = () => {
             return new Promise((resolve, reject) => {
                 let fetch_params = {
-                    headers: new Headers(Object.assign({}, headers)),
+                    headers: Object.assign({}, headers),
                     credentials,
                     method,
                     mode,
@@ -489,7 +489,6 @@ class BaseModel$1 {
                 }
                 value = is_external ? external_value : model[property_name];
                 if (is_required || (!is_required && value)) {
-                    console.log(el);
                     let proc_names = this.getProcessor(container.fields[el]);
                     let processors = this.createProcessorCallie(proc_names);
                     result[field_name] = processors ? processors(value) : value;
@@ -545,6 +544,7 @@ class PostModel extends BaseModel$1 {
     return this.generateQuery({
       uri: 'http://localhost/api/v2/post',
       method: 'POST',
+      headers: this.parent.headers,
       container: 'post_data'
     })()
   }
@@ -553,6 +553,7 @@ class PostModel extends BaseModel$1 {
     return this.generateQuery({
       uri: 'http://localhost/api/v2/post',
       method: 'POST',
+      headers: this.parent.headers,
       container: 'user'
     })()
   }
@@ -564,7 +565,11 @@ let app = {
     name: 'Karen',
     pass: 'qwe123'
   },
-  is_mine: false
+  is_mine: false,
+  headers: {
+    'qwe-key': 'qwe-val',
+    'test1': 'val-test1'
+  }
 };
 
 let model = new PostModel(app);

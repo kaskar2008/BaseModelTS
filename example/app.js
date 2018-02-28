@@ -45,6 +45,7 @@ class PostModel extends BaseModel {
     return this.generateQuery({
       uri: 'http://localhost/api/v2/post',
       method: 'POST',
+      headers: this.parent.headers,
       container: 'post_data'
     })()
   }
@@ -53,6 +54,7 @@ class PostModel extends BaseModel {
     return this.generateQuery({
       uri: 'http://localhost/api/v2/post',
       method: 'POST',
+      headers: this.parent.headers,
       container: 'user'
     })()
   }
@@ -64,7 +66,11 @@ let app = {
     name: 'Karen',
     pass: 'qwe123'
   },
-  is_mine: false
+  is_mine: false,
+  headers: {
+    'qwe-key': 'qwe-val',
+    'test1': 'val-test1'
+  }
 }
 
 let model = new PostModel(app)
