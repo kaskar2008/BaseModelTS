@@ -7,10 +7,10 @@ function getQueryString(params) {
         .map((k) => {
         if (Array.isArray(params[k])) {
             return params[k]
-                .map((val) => `${encodeURIComponent(k)}[]=${encodeURIComponent(val)}`)
+                .map((val) => val ? `${encodeURIComponent(k)}[]=${encodeURIComponent(val)}` : '')
                 .join('&');
         }
-        return `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`;
+        return params[k] ? `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}` : '';
     })
         .join('&');
 }
@@ -325,6 +325,7 @@ class BaseModel$1 {
         let is_json = (params.json === true || params.json === false) ? params.json : DEFAULTS.IS_JSON_RESPONSE;
         if (method == 'GET' && data) {
             uri = uri + (!~uri.indexOf('?') ? '?' : '&') + getQueryString(data);
+            data = null;
         }
         else if (method != 'GET') {
             data = JSON.stringify(data);
@@ -557,6 +558,15 @@ class PostModel extends BaseModel$1 {
       container: 'user'
     })()
   }
+
+  testGet (param) {
+    return this.generateQuery({
+      uri: 'http://localhost/api/v2/get',
+      method: 'GET',
+      headers: this.parent.headers,
+      data: { param }
+    })()
+  }
 }
 
 let app = {
@@ -586,5 +596,6 @@ app.is_mine = true;
 
 model.edit();
 model.create();
+model.testGet('123');
 
 }());

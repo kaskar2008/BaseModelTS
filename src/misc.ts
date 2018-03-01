@@ -4,11 +4,11 @@ export function getQueryString (params: any): string {
   .map((k: any) => {
     if (Array.isArray(params[k])) {
       return params[k]
-        .map((val: any) => `${encodeURIComponent(k)}[]=${encodeURIComponent(val)}`)
+        .map((val: any) => val ? `${encodeURIComponent(k)}[]=${encodeURIComponent(val)}` : '')
         .join('&')
     }
 
-    return `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`
+    return params[k] ? `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}` : ''
   })
   .join('&')
 }

@@ -315,6 +315,7 @@ export class BaseModel<Parent> {
 
     if (method == 'GET' && data) {
       uri = uri + (!~uri.indexOf('?')?'?':'&') + getQueryString(data)
+      data = null
     } else if (method != 'GET') {
       data = JSON.stringify(data)
     }

@@ -58,6 +58,15 @@ class PostModel extends BaseModel {
       container: 'user'
     })()
   }
+
+  testGet (param) {
+    return this.generateQuery({
+      uri: 'http://localhost/api/v2/get',
+      method: 'GET',
+      headers: this.parent.headers,
+      data: { param }
+    })()
+  }
 }
 
 let app = {
@@ -87,3 +96,4 @@ app.is_mine = true
 
 model.edit()
 model.create()
+model.testGet(123)
