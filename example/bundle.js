@@ -238,9 +238,7 @@ class BaseModel$1 {
                 }
             }
         }
-        else {
-            return name;
-        }
+        return name;
     }
     /**
      * Adds a new modifier
@@ -596,6 +594,6 @@ app.is_mine = true;
 
 model.edit();
 model.create();
-model.testGet('123');
+model.testGet(123);
 
 }());
