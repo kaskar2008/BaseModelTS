@@ -219,9 +219,9 @@ export class BaseModel<Parent> {
           return processor_name
         }
       }
-    } else {
-      return name
     }
+    
+    return name
   }
 
   /**
