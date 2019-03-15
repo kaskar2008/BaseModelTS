@@ -72,7 +72,9 @@ class PostModel extends BaseModel {
 let app = {
   text: 'loredsfgsdf asf asdgsd sdfgs fgdsfgadsrfgadfgsd gsdfg f',
   form_data: {
-    name: 'Karen',
+    get name() {
+      return this.pass === 'qwe123' ? 'Karen' : 'Johny'
+    },
     pass: 'qwe123'
   },
   is_mine: false,
@@ -91,7 +93,7 @@ console.log('tut', model.$post_data)
 model.create()
 model.edit()
 
-app.form_data.name = 'Johny'
+app.form_data.pass = '123qwe'
 app.text = 'lorem ipsum dolor sit amet'
 app.is_mine = true
 
