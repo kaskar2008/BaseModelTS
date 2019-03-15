@@ -12,7 +12,7 @@ export class Container<T> {
     this.fields = fields
 
     if (source) {
-      this.data = new Proxy(source, {})
+      this.data = source
     }
   }
 
@@ -21,7 +21,7 @@ export class Container<T> {
    * @param source Data source
    */
   public setSource (source: any): void {
-    this.data = new Proxy(source, {})
+    this.data = source
     this.model.setProxy(this.name)
   }
 }
