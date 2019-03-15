@@ -44,7 +44,7 @@ export class BaseModel<Parent> {
     if (this.getContainer(container_name)) {
       let original: any = this.containers[container_name].data
       let proxy_name: string = `${DEFAULTS.CONTAINER_PROXY_PREFIX}${container_name}`
-      this[proxy_name] = new Proxy(original, {})
+      this[proxy_name] = original
     } else {
       console.error(`
         BaseAjax::setProxy()

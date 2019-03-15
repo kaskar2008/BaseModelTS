@@ -43,8 +43,8 @@ class PostModel extends BaseModel {
 
   create () {
     return this.generateQuery({
-      uri: 'http://localhost/api/v2/post',
-      method: 'POST',
+      uri: 'http://localhost:8888/api/v2/create',
+      method: 'GET',
       headers: this.parent.headers,
       container: 'post_data'
     })()
@@ -52,8 +52,8 @@ class PostModel extends BaseModel {
 
   edit () {
     return this.generateQuery({
-      uri: 'http://localhost/api/v2/post',
-      method: 'POST',
+      uri: 'http://localhost:8888/api/v2/edit',
+      method: 'GET',
       headers: this.parent.headers,
       container: 'user'
     })()
@@ -61,7 +61,7 @@ class PostModel extends BaseModel {
 
   testGet (param) {
     return this.generateQuery({
-      uri: 'http://localhost/api/v2/get',
+      uri: 'http://localhost:8888/api/v2/get',
       method: 'GET',
       headers: this.parent.headers,
       data: { param }
@@ -72,7 +72,9 @@ class PostModel extends BaseModel {
 let app = {
   text: 'loredsfgsdf asf asdgsd sdfgs fgdsfgadsrfgadfgsd gsdfg f',
   form_data: {
-    name: 'Karen',
+    get name() {
+      return this.pass === 'qwe123' ? 'Karen' : 'Johny'
+    },
     pass: 'qwe123'
   },
   is_mine: false,
@@ -91,7 +93,8 @@ console.log('tut', model.$post_data)
 model.create()
 model.edit()
 
-app.text = 'Johny'
+app.form_data.pass = '123qwe'
+app.text = 'lorem ipsum dolor sit amet'
 app.is_mine = true
 
 model.edit()
