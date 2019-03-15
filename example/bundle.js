@@ -28,7 +28,7 @@ class Container {
         this.name = name;
         this.fields = fields;
         if (source) {
-            this.data = new Proxy(source, {});
+            this.data = source;
         }
     }
     /**
@@ -36,7 +36,7 @@ class Container {
      * @param source Data source
      */
     setSource(source) {
-        this.data = new Proxy(source, {});
+        this.data = source;
         this.model.setProxy(this.name);
     }
 }
@@ -110,7 +110,7 @@ class BaseModel$1 {
         if (this.getContainer(container_name)) {
             let original = this.containers[container_name].data;
             let proxy_name = `${DEFAULTS.CONTAINER_PROXY_PREFIX}${container_name}`;
-            this[proxy_name] = new Proxy(original, {});
+            this[proxy_name] = original;
         }
         else {
             console.error(`
@@ -541,8 +541,8 @@ class PostModel extends BaseModel$1 {
 
   create () {
     return this.generateQuery({
-      uri: 'http://localhost/api/v2/post',
-      method: 'POST',
+      uri: 'http://localhost:8888/api/v2/create',
+      method: 'GET',
       headers: this.parent.headers,
       container: 'post_data'
     })()
@@ -550,8 +550,8 @@ class PostModel extends BaseModel$1 {
 
   edit () {
     return this.generateQuery({
-      uri: 'http://localhost/api/v2/post',
-      method: 'POST',
+      uri: 'http://localhost:8888/api/v2/edit',
+      method: 'GET',
       headers: this.parent.headers,
       container: 'user'
     })()
@@ -559,7 +559,7 @@ class PostModel extends BaseModel$1 {
 
   testGet (param) {
     return this.generateQuery({
-      uri: 'http://localhost/api/v2/get',
+      uri: 'http://localhost:8888/api/v2/get',
       method: 'GET',
       headers: this.parent.headers,
       data: { param }
@@ -589,7 +589,8 @@ console.log('tut', model.$post_data);
 model.create();
 model.edit();
 
-app.text = 'Johny';
+app.form_data.name = 'Johny';
+app.text = 'lorem ipsum dolor sit amet';
 app.is_mine = true;
 
 model.edit();
