@@ -2,16 +2,16 @@ import { Container } from './Container'
 
 export interface Processor {
   name: string,
-  proc: (...params) => any
+  proc: (...params: any[]) => any
 }
 
 export interface Modifier {
   name: string,
-  proc: (...params) => any
+  proc: (...params: any[]) => any
 }
 
 export interface MethodSet {
-  [key: string]: (...args) => any
+  [key: string]: (...args: any[]) => any
 }
 
 export interface ContainerSet<T> {

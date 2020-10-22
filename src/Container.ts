@@ -6,7 +6,7 @@ export class Container<T> {
   public name: string
   public fields: any = {}
 
-  constructor (model: BaseModel<T>, name: string, fields: any, source?) {
+  constructor (model: BaseModel<T>, name: string, fields: any, source?: any) {
     this.model = model
     this.name = name
     this.fields = fields
