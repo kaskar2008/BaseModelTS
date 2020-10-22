@@ -18,11 +18,11 @@ export class BaseModel<Parent> {
   private modifiers: MethodSet = {}
   private described_containers: any = {}
 
-  public parent: Parent
+  public parent: Parent | null
   public containers: ContainerSet<Parent> = {}
-  public interceptor: (resp: any) => any
+  public interceptor: (resp: any) => any = () => {}
 
-  constructor (parent: Parent = null) {
+  constructor (parent: Parent| null = null) {
     this.parent = parent
     this.addFieldProcessorsBulk({
       'int': (value: any) => !value ? 0 : (parseInt(value) ? +parseInt(value) : 0),
@@ -109,9 +109,9 @@ export class BaseModel<Parent> {
    * @param containers Array of containers
    */
   public addContainer: {
-    (name: string, fields: { [key: string]: string }, source?): BaseModel<Parent>;
+    (name: string, fields: { [key: string]: string }, source?: any): BaseModel<Parent>;
     (container: ContainerBase): BaseModel<Parent>;
-  } = function() {
+  } = function (this: BaseModel<Parent>) {
     if (arguments.length >= 2) {
       var full_name = arguments[0]
       var fields = arguments[1]
@@ -137,9 +137,11 @@ export class BaseModel<Parent> {
   public addContainers:{
     (containers: ContainerBases): BaseModel<Parent>
     (containers: ContainerBase[]): BaseModel<Parent>
-  } = containers => {
-    if (Array.isArray(containers))
+  } = (containers: ContainerBases | ContainerBase[]) => {
+    if (Array.isArray(containers)) {
       containers.forEach(this.addContainer);
+      return this
+    }
     for (let name in containers) {
       const { fields, source } = containers[name]
       this.addContainer(name, fields, source)
@@ -187,7 +189,7 @@ export class BaseModel<Parent> {
    * @param      {string}  full_name  The full name
    * @param      {Object}  fields     The fields
    */
-  describeContainer (full_name, fields = {}) {
+  describeContainer (full_name: string, fields = {}) {
     let extended_fields = this.getExtendedFields(full_name)
     let name = full_name
 
@@ -229,8 +231,8 @@ export class BaseModel<Parent> {
    * @param params Name and a callback for a new modifier
    */
   public addModifier (params: Modifier): BaseModel<Parent> {
-    let name: string = params.name || null
-    let callie: (...args) => any = params.proc || null
+    let name: string | null = params.name || null
+    let callie: (...args: any[]) => any = params.proc || null
     if (!name || !callie) {
       console.error(`
         BaseAjax::addModifier()
@@ -248,7 +250,7 @@ export class BaseModel<Parent> {
    */
   public addFieldProcessor (params: Processor): BaseModel<Parent> {
     let name: string = params.name
-    let callie: (...args) => any = params.proc
+    let callie: (...args: any[]) => any = params.proc
     if (!name || !callie) {
       console.error(`
         BaseModel::addFieldProcessor()
@@ -391,7 +393,11 @@ export class BaseModel<Parent> {
         let property_name: string = splitted_keys.slice(-1).join('')
         // from parent
         if (splitted_keys[0] == '^') {
-          items[i] = fromDot(this.parent, model_path)[property_name]
+          let newItem: any = fromDot(this.parent, model_path);
+
+          if (newItem) {
+            items[i] = newItem[property_name]
+          }
         }
         // from self class
         if (splitted_keys[0] == '&') {
@@ -405,7 +411,7 @@ export class BaseModel<Parent> {
       }
     }
     expression = items.join(' ')
-    return Function.apply(null, [].concat('return ' + expression))()
+    return Function.apply(null, ([] as string[]).concat('return ' + expression))()
   }
 
   /**
@@ -437,7 +443,7 @@ export class BaseModel<Parent> {
         let is_external: boolean = false
 
         // has condition:
-        let condition: string[] = el.match(/if\((.+)\)/i)
+        let condition: string[] | null = el.match(/if\((.+)\)/i)
         let condition_result: boolean = true
         if (condition && condition.length > 1) {
           condition_result = this.parseCondition(condition[1])

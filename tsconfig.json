@@ -3,6 +3,7 @@
     "skipLibCheck": true,
     "target": "es6",
     "outDir": "compiled",
-    "rootDir": "src"
+    "rootDir": "src",
+    "strict": true,
   }
 }
